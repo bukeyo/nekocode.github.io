@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>家逸的世界</title>
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  background: url("bg.png") center center fixed;
+  background-size: cover;
+  font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+  overflow-x: hidden;
+  min-height: 100vh;
+  padding: 20px 12px 40px;
+  transition: background 0.6s ease;
+  opacity: 0;
+  animation: bodyFadeIn 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes bodyFadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+body.prank-mode {
+  background: #000 !important;
+}
+
+/* ===== 页面加载动画（iOS风格丝滑） ===== */
+#pageLoader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 999999;
+  background: rgba(0,0,0,0.15);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 0;
+  animation: loaderFade 0.8s ease-out forwards;
+}
+@keyframes loaderFade {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+#loaderIcon {
+  font-size: 52px;
+  animation: loaderPulse 1s cubic-bezier(0.16, 1, 0.3, 1) infinite alternate;
+  filter: drop-shadow(0 0 40px rgba(255,150,200,0.4));
+  transform: scale(0.8);
+}
+@keyframes loaderPulse {
+  0% { transform: scale(0.8); opacity: 0.4; filter: drop-shadow(0 0 20px rgba(255,150,200,0.2)); }
+  100% { transform: scale(1.1); opacity: 1; filter: drop-shadow(0 0 60px rgba(255,150,200,0.6)); }
+}
+
+#sakura {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ===== 卡片：霓虹光晕 + iOS风格 ===== */
+.card {
+  position: relative;
+  z-index: 99;
+  max-width: 750px;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(24px) saturate(1.2);
+  -webkit-backdrop-filter: blur(24px) saturate(1.2);
+  padding: 35px 22px 30px;
+  border-radius: 28px;
+  border: 1px solid rgba(255,255,255,0.15);
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+  transition: opacity 0.5s ease, transform 0.5s ease, box-shadow 0.3s ease;
+  animation: cardGlow 4s ease-in-out infinite;
+  transform: scale(0.96);
+  opacity: 0;
+  animation: cardEntry 1s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards, cardGlow 4s ease-in-out 1.5s infinite;
+}
+@keyframes cardEntry {
+  0% { transform: scale(0.94); opacity: 0; filter: blur(12px); }
+  100% { transform: scale(1); opacity: 1; filter: blur(0); }
+}
+
+/* ===== 卡片霓虹光晕 ===== */
+@keyframes cardGlow {
+  0%, 100% {
+    box-shadow: 0 20px 60px rgba(0,0,0,0.12),
+                0 0 40px rgba(255,150,200,0.08),
+                0 0 80px rgba(150,100,255,0.04);
+  }
+  50% {
+    box-shadow: 0 20px 70px rgba(0,0,0,0.16),
+                0 0 60px rgba(255,150,200,0.18),
+                0 0 120px rgba(150,100,255,0.10);
+  }
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 30px;
+  padding: 2px;
+  background: conic-gradient(
+    from var(--angle, 0deg),
+    rgba(255,150,200,0.3),
+    rgba(200,150,255,0.15),
+    rgba(150,200,255,0.2),
+    rgba(255,150,200,0.3)
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: -1;
+  animation: rotateBorder 6s linear infinite;
+}
+@property --angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+@keyframes rotateBorder {
+  to { --angle: 360deg; }
+}
+
+.card::after {
+  content: '';
+  position: absolute;
+  inset: -60px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 30% 20%, rgba(255,150,200,0.06), transparent 70%);
+  pointer-events: none;
+  z-index: -1;
+  animation: glowBreath 3s ease-in-out infinite alternate;
+}
+@keyframes glowBreath {
+  0% { transform: scale(0.8); opacity: 0.3; }
+  100% { transform: scale(1.2); opacity: 1; }
+}
+
+.card.prank-hide {
+  opacity: 0;
+  transform: scale(0.95);
+  pointer-events: none;
+}
+
+.card > * {
+  position: relative;
+  z-index: 1;
+}
+
+h1 {
+  font-size: 26px;
+  margin-bottom: 22px;
+  letter-spacing: 2px;
+  background: linear-gradient(135deg, #fff 25%, #ffb8d4 50%, #fff 75%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  background-size: 200% auto;
+  animation: shimmer 3s ease-in-out infinite;
+}
+@keyframes shimmer {
+  0%, 100% { background-position: 0% center; }
+  50% { background-position: 200% center; }
+}
+
+.row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.row img, .row video {
+  width: 50%;
+  border-radius: 16px;
+  object-fit: cover;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.5s ease;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.20), 0 0 0 1px rgba(255,255,255,0.05);
+}
+.single {
+  width: 100%;
+  border-radius: 16px;
+  margin: 10px 0;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.5s ease;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.20), 0 0 0 1px rgba(255,255,255,0.05);
+}
+
+/* ===== 视频专属：圆角阴影 + 播放发光 ===== */
+video {
+  background: #fce4ec;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.20), 0 0 0 1px rgba(255,255,255,0.05);
+  transition: box-shadow 0.4s ease;
+}
+video:playing {
+  box-shadow: 0 4px 30px rgba(255,150,200,0.25), 0 0 0 2px rgba(255,150,200,0.15), 0 0 60px rgba(255,150,200,0.05);
+}
+
+img:hover, video:hover {
+  transform: scale(1.02);
+  box-shadow: 0 8px 35px rgba(255,150,200,0.25), 0 0 0 1px rgba(255,150,200,0.15);
+}
+
+.music-btn {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 9999;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: rgba(255,180,210,0.20);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: white;
+  font-size: 22px;
+  cursor: pointer;
+  box-shadow: 0 0 30px rgba(255,180,210,0.10);
+  transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.music-btn:active {
+  transform: scale(0.88);
+}
+.music-btn.playing {
+  animation: spin 8s linear infinite;
+}
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.bottom-actions {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 30px;
+  flex-wrap: wrap;
+}
+
+/* ===== iOS 26风格按钮 ===== */
+.bilibili {
+  font-size: 17px;
+  color: #fff;
+  text-decoration: none;
+  display: inline-block;
+  background: rgba(255,255,255,0.10);
+  padding: 12px 28px;
+  border-radius: 30px;
+  border: 1px solid rgba(255,255,255,0.08);
+  transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  text-shadow: 0 1px 6px rgba(0,0,0,0.10);
+  letter-spacing: 1px;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.bilibili::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 200%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  transform: skewX(-20deg);
+  transition: 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+.bilibili:hover {
+  background: rgba(255,255,255,0.20);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 40px rgba(255,255,255,0.06);
+}
+.bilibili:hover::before {
+  left: 100%;
+}
+.bilibili:active {
+  transform: scale(0.94);
+}
+
+.donate-btn {
+  font-size: 17px;
+  color: #fff;
+  text-decoration: none;
+  display: inline-block;
+  background: linear-gradient(135deg, #f7971e, #ffd200);
+  padding: 12px 28px;
+  border-radius: 30px;
+  border: none;
+  transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  text-shadow: 0 1px 6px rgba(0,0,0,0.15);
+  letter-spacing: 1px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  box-shadow: 0 4px 30px rgba(247, 151, 30, 0.25);
+  position: relative;
+  overflow: hidden;
+}
+.donate-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 200%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+  transform: skewX(-20deg);
+  transition: 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+.donate-btn:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 50px rgba(247, 151, 30, 0.35);
+}
+.donate-btn:hover::before {
+  left: 100%;
+}
+.donate-btn:active {
+  transform: scale(0.94);
+}
+.donate-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* ===== 图片查看器（双击放大） ===== */
+#imageViewer {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 999999;
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(40px) saturate(1.4);
+  -webkit-backdrop-filter: blur(40px) saturate(1.4);
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+#imageViewer.active {
+  display: flex;
+  opacity: 1;
+}
+#imageViewer img {
+  max-width: 90%;
+  max-height: 85vh;
+  border-radius: 20px;
+  box-shadow: 0 0 80px rgba(255,150,200,0.15), 0 0 200px rgba(150,100,255,0.05);
+  transform: scale(0.85);
+  opacity: 0;
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+  user-select: none;
+}
+#imageViewer.active img {
+  transform: scale(1);
+  opacity: 1;
+}
+#imageViewer .close-viewer {
+  position: absolute;
+  top: 24px;
+  right: 28px;
+  z-index: 10;
+  font-size: 30px;
+  color: rgba(255,255,255,0.4);
+  cursor: pointer;
+  transition: 0.3s;
+  background: rgba(255,255,255,0.05);
+  border-radius: 50%;
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255,255,255,0.05);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+#imageViewer .close-viewer:hover {
+  color: #fff;
+  background: rgba(255,255,255,0.10);
+  transform: rotate(90deg);
+}
+
+/* ===== 左下角信息区 ===== */
+#infoCorner {
+  position: fixed;
+  bottom: 16px;
+  left: 16px;
+  z-index: 9998;
+  font-size: 12px;
+  color: rgba(255,255,255,0.30);
+  background: rgba(0,0,0,0.15);
+  backdrop-filter: blur(12px) saturate(1.2);
+  -webkit-backdrop-filter: blur(12px) saturate(1.2);
+  padding: 8px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.04);
+  line-height: 1.7;
+  letter-spacing: 0.3px;
+  user-select: none;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+  text-align: left;
+}
+#infoCorner.hidden {
+  opacity: 0;
+}
+#infoCorner .visit {
+  font-size: 11px;
+}
+#infoCorner .uptime {
+  font-size: 11px;
+  color: rgba(255,255,255,0.20);
+}
+#infoCorner .uptime span {
+  color: rgba(255,200,180,0.60);
+}
+
+/* ============================================================
+   整蛊覆盖层 — 终极暴闪版
+   ============================================================ */
+#prankOverlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 99999;
+  background: #000;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
+#prankOverlay.active {
+  display: block;
+  opacity: 1;
+}
+
+#prankCanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+#prankFlicker {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 5;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  background: rgba(255, 255, 255, 0);
+  animation: superFlicker 0.04s infinite alternate;
+}
+@keyframes superFlicker {
+  0% { background: rgba(255,255,255,0); }
+  8% { background: rgba(255,255,255,0.5); }
+  16% { background: rgba(255,255,255,0); }
+  24% { background: rgba(255,255,255,0.9); }
+  32% { background: rgba(0,0,0,0.7); }
+  40% { background: rgba(255,200,200,0.4); }
+  48% { background: rgba(255,255,255,0.2); }
+  56% { background: rgba(255,0,0,0.4); }
+  64% { background: rgba(0,255,255,0.3); }
+  72% { background: rgba(255,255,255,0.8); }
+  80% { background: rgba(0,0,0,0.5); }
+  88% { background: rgba(255,255,255,0.1); }
+  100% { background: rgba(255,255,255,0); }
+}
+
+#prankFlickerStripes {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 4;
+  pointer-events: none;
+  background: repeating-linear-gradient(45deg,
+    rgba(255,255,255,0.4) 0px,
+    rgba(255,255,255,0) 8px,
+    rgba(255,255,255,0.6) 16px,
+    rgba(255,255,255,0) 24px,
+    rgba(255,255,255,0.2) 32px,
+    rgba(255,255,255,0) 40px
+  );
+  animation: stripeFlicker 0.025s infinite alternate;
+}
+@keyframes stripeFlicker {
+  0% { opacity: 0; transform: scale(1) rotate(0deg); }
+  20% { opacity: 1; transform: scale(1.15) rotate(8deg); }
+  40% { opacity: 0; transform: scale(0.85) rotate(-8deg); }
+  60% { opacity: 1; transform: scale(1.2) rotate(15deg); }
+  80% { opacity: 0; transform: scale(0.9) rotate(-15deg); }
+  100% { opacity: 0.5; transform: scale(1) rotate(0deg); }
+}
+
+#prankNoise {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 6;
+  pointer-events: none;
+  opacity: 0.3;
+  animation: noiseFlicker 0.03s infinite alternate;
+}
+@keyframes noiseFlicker {
+  0% { background: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Cfilter id="n"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23n)"/%3E%3C/svg%3E') repeat; }
+  50% { opacity: 0.6; }
+  100% { opacity: 0.1; }
+}
+
+#prankGlare {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 3;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.08), transparent 70%);
+  animation: glareMove 0.3s infinite alternate ease-in-out;
+}
+@keyframes glareMove {
+  0% { transform: scale(1) rotate(0deg); opacity: 0.2; }
+  100% { transform: scale(2.5) rotate(180deg); opacity: 0.9; }
+}
+
+#prankImg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -55%);
+  max-width: 70%;
+  max-height: 55vh;
+  border-radius: 18px;
+  box-shadow: 0 0 60px rgba(255,200,100,0.3), 0 0 120px rgba(255,100,200,0.2);
+  z-index: 10;
+  animation: imgPulse 0.6s ease-in-out infinite;
+  pointer-events: none;
+  user-select: none;
+}
+@keyframes imgPulse {
+  0%, 100% { transform: translate(-50%, -55%) scale(1); box-shadow: 0 0 60px rgba(255,200,100,0.3), 0 0 120px rgba(255,100,200,0.2); }
+  50% { transform: translate(-50%, -55%) scale(1.08); box-shadow: 0 0 120px rgba(255,200,100,0.7), 0 0 250px rgba(255,100,200,0.5); }
+}
+
+#prankText {
+  position: absolute;
+  bottom: 12%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  font-size: clamp(48px, 10vw, 100px);
+  font-weight: 900;
+  color: #ffffff;
+  text-shadow: 0 0 20px rgba(255,255,255,0.3), 0 4px 30px rgba(0,0,0,0.8);
+  background: rgba(0,0,0,0.55);
+  padding: 12px 40px;
+  border-radius: 20px;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: 1px solid rgba(255,255,255,0.15);
+  letter-spacing: 8px;
+  pointer-events: auto;
+  cursor: default;
+  user-select: none;
+  white-space: nowrap;
+}
+@media (max-width: 480px) {
+  #prankText {
+    font-size: clamp(32px, 12vw, 50px);
+    padding: 10px 20px;
+    letter-spacing: 4px;
+    bottom: 8%;
+  }
+  #prankImg {
+    max-width: 85%;
+    max-height: 45vh;
+  }
+}
+
+#prankExit {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+  z-index: 30;
+  font-size: 28px;
+  color: rgba(255,255,255,0.5);
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: 0.3s;
+  font-family: sans-serif;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+#prankExit:hover {
+  color: #fff;
+  background: rgba(255,255,255,0.20);
+  transform: rotate(90deg);
+}
+#prankExit:active {
+  transform: scale(0.85) rotate(90deg);
+}
+
+#prankAudioIndicator {
+  position: absolute;
+  bottom: 18px;
+  right: 24px;
+  z-index: 25;
+  color: rgba(255,255,255,0.15);
+  font-size: 12px;
+  letter-spacing: 2px;
+  font-weight: 300;
+  pointer-events: none;
+  user-select: none;
+}
+</style>
+</head>
+
+<body>
+
+<!-- ===== 加载动画 ===== -->
+<div id="pageLoader">
+  <div id="loaderIcon">🌸</div>
+</div>
+
+<canvas id="sakura"></canvas>
+
+<button class="music-btn" id="musicBtn">🎵</button>
+<audio id="bgMusic" loop>
+  <source src="bg.mp3" type="audio/mpeg">
+</audio>
+<audio id="bgMusic2" loop>
+  <source src="bg2.mp3" type="audio/mpeg">
+</audio>
+
+<!-- ===== 图片查看器 ===== -->
+<div id="imageViewer" onclick="closeImageViewer()">
+  <div class="close-viewer" onclick="event.stopPropagation(); closeImageViewer();">✕</div>
+  <img id="viewerImg" src="" alt="查看大图">
+</div>
+
+<!-- ===== 左下角信息 ===== -->
+<div id="infoCorner">
+  <div class="visit" id="visitDisplay">👀 加载中...</div>
+  <div class="uptime">🛡️ 已安全运行 <span id="uptimeDays">0</span> 天</div>
+</div>
+
+<div class="card" id="mainCard">
+  <h1>🌸 家逸的世界 🌸</h1>
+
+  <div class="row">
+    <img src="pic1.jpg" alt="家逸照片1" loading="lazy" ondblclick="openImageViewer(this.src)">
+    <img src="pic2.jpg" alt="家逸照片2" loading="lazy" ondblclick="openImageViewer(this.src)">
+  </div>
+  <img src="pic3.jpg" alt="家逸照片3" class="single" loading="lazy" ondblclick="openImageViewer(this.src)">
+
+  <br><br>
+
+  <div class="row">
+    <video src="movie1.mp4" controls playsinline muted poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect width='400' height='300' fill='%23f8bbd0'/%3E%3Ctext x='50%25' y='50%25' font-size='20' fill='%23fff' text-anchor='middle' dy='.3em'%3E🎬 视频1%3C/text%3E%3C/svg%3E"></video>
+    <video src="movie2.mp4" controls playsinline muted poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect width='400' height='300' fill='%23f8bbd0'/%3E%3Ctext x='50%25' y='50%25' font-size='20' fill='%23fff' text-anchor='middle' dy='.3em'%3E🎬 视频2%3C/text%3E%3C/svg%3E"></video>
+  </div>
+
+  <div class="bottom-actions">
+    <a href="https://space.bilibili.com/3461567815354693" target="_blank" class="bilibili">📺 我的B站</a>
+    <button class="donate-btn" id="donateBtn">💰 捐款</button>
+  </div>
+</div>
+
+<!-- ===== 整蛊覆盖层 ===== -->
+<div id="prankOverlay">
+  <canvas id="prankCanvas"></canvas>
+  <div id="prankFlicker"></div>
+  <div id="prankFlickerStripes"></div>
+  <div id="prankNoise"></div>
+  <div id="prankGlare"></div>
+  <img id="prankImg" src="pic4.JPG" alt="pic4">
+  <div id="prankText">我不需要</div>
+  <div id="prankExit">✕</div>
+  <div id="prankAudioIndicator">🎵 音频2</div>
+</div>
+
+<script>
+// ============================================================
+//  0. 图片查看器
+// ============================================================
+function openImageViewer(src) {
+  const viewer = document.getElementById('imageViewer');
+  const img = document.getElementById('viewerImg');
+  img.src = src;
+  viewer.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+function closeImageViewer() {
+  const viewer = document.getElementById('imageViewer');
+  viewer.classList.remove('active');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeImageViewer();
+});
+
+// ============================================================
+//  0b. 视频播放发光
+// ============================================================
+document.querySelectorAll('video').forEach(v => {
+  v.addEventListener('play', function() {
+    this.setAttribute('playing', '');
+  });
+  v.addEventListener('pause', function() {
+    this.removeAttribute('playing');
+  });
+  v.addEventListener('ended', function() {
+    this.removeAttribute('playing');
+  });
+});
+
+// ============================================================
+//  1. 访问计数 + 运行天数
+// ============================================================
+(function initInfo() {
+  const visitEl = document.getElementById('visitDisplay');
+  const uptimeEl = document.getElementById('uptimeDays');
+  const corner = document.getElementById('infoCorner');
+
+  try {
+    let count = parseInt(localStorage.getItem('jiayi_visit_count') || '0', 10);
+    if (isNaN(count)) count = 0;
+    count += 1;
+    localStorage.setItem('jiayi_visit_count', String(count));
+    visitEl.textContent = '👀 你是第 ' + count + ' 位访客';
+  } catch (_) {
+    visitEl.textContent = '👀 欢迎来访';
+  }
+
+  try {
+    const start = new Date(2026, 5, 26);
+    const now = new Date();
+    const diff = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+    const days = diff >= 0 ? diff : 0;
+    uptimeEl.textContent = days;
+  } catch (_) {
+    uptimeEl.textContent = '?';
+  }
+
+  const obs = new MutationObserver(() => {
+    const overlay = document.getElementById('prankOverlay');
+    if (overlay && overlay.classList.contains('active')) {
+      corner.classList.add('hidden');
+    } else {
+      corner.classList.remove('hidden');
+    }
+  });
+  const overlay = document.getElementById('prankOverlay');
+  if (overlay) {
+    obs.observe(overlay, { attributes: true, attributeFilter: ['class'] });
+  }
+})();
+
+// ============================================================
+//  2. 音频控制
+// ============================================================
+const audio1 = document.getElementById('bgMusic');
+const audio2 = document.getElementById('bgMusic2');
+const musicBtn = document.getElementById('musicBtn');
+let isPlaying = false;
+let isPrankMode = false;
+let videoPlaying = false;
+let firstClickDone = false;
+
+function firstPlay() {
+  if (!firstClickDone) {
+    firstClickDone = true;
+    playAudio1();
+  }
+  document.removeEventListener('click', firstPlay);
+  document.removeEventListener('touchstart', firstPlay);
+}
+document.addEventListener('click', firstPlay);
+document.addEventListener('touchstart', firstPlay);
+
+function playAudio1() {
+  audio1.play().then(() => {
+    isPlaying = true;
+    musicBtn.innerHTML = '⏸';
+    musicBtn.classList.add('playing');
+  }).catch(() => {});
+}
+
+function pauseAudio1() {
+  audio1.pause();
+  isPlaying = false;
+  musicBtn.innerHTML = '🎵';
+  musicBtn.classList.remove('playing');
+}
+
+function resumeAudio1() {
+  if (!isPrankMode && !videoPlaying) {
+    audio1.play().then(() => {
+      isPlaying = true;
+      musicBtn.innerHTML = '⏸';
+      musicBtn.classList.add('playing');
+    }).catch(() => {});
+  }
+}
+
+musicBtn.onclick = function (e) {
+  e.stopPropagation();
+  if (isPrankMode) {
+    if (isPlaying) {
+      audio2.pause();
+      isPlaying = false;
+      musicBtn.innerHTML = '🎵';
+      musicBtn.classList.remove('playing');
+    } else {
+      audio2.play().then(() => {
+        isPlaying = true;
+        musicBtn.innerHTML = '⏸';
+        musicBtn.classList.add('playing');
+      }).catch(() => {});
+    }
+    return;
+  }
+  if (isPlaying) {
+    audio1.pause();
+    musicBtn.innerHTML = '🎵';
+    musicBtn.classList.remove('playing');
+    isPlaying = false;
+  } else {
+    audio1.play().then(() => {
+      musicBtn.innerHTML = '⏸';
+      musicBtn.classList.add('playing');
+      isPlaying = true;
+    }).catch(() => {});
+  }
+};
+
+// ============================================================
+//  3. 视频播放自动暂停音乐
+// ============================================================
+document.querySelectorAll('video').forEach(v => {
+  v.addEventListener('play', function() {
+    if (isPlaying && !isPrankMode) {
+      audio1.pause();
+      isPlaying = false;
+      musicBtn.innerHTML = '🎵';
+      musicBtn.classList.remove('playing');
+      videoPlaying = true;
+    }
+  });
+  v.addEventListener('pause', function() {
+    if (videoPlaying && !isPrankMode) {
+      videoPlaying = false;
+      resumeAudio1();
+    }
+  });
+  v.addEventListener('ended', function() {
+    if (videoPlaying && !isPrankMode) {
+      videoPlaying = false;
+      resumeAudio1();
+    }
+  });
+  v.addEventListener('webkitendfullscreen', function() {
+    if (videoPlaying && !isPrankMode) {
+      videoPlaying = false;
+      resumeAudio1();
+    }
+  });
+});
+
+// ============================================================
+//  4. 主樱花 + 拖尾樱花 + 爆炸特效
+// ============================================================
+const canvas = document.getElementById('sakura');
+const ctx = canvas.getContext('2d');
+let w = window.innerWidth;
+let h = window.innerHeight;
+canvas.width = w;
+canvas.height = h;
+
+const sakuras = [];
+const bursts = [];
+const trailParticles = [];
+let sakuraAnimId = null;
+let sakuraRunning = true;
+
+function rand(min, max) { return Math.random() * (max - min) + min; }
+
+class Sakura {
+  constructor() {
+    this.x = rand(0, w);
+    this.y = rand(-300, -50);
+    this.size = rand(14, 30);
+    this.speed = rand(0.6, 1.8);
+    this.wind = rand(-0.6, 0.6);
+    this.rot = rand(0, Math.PI * 2);
+    this.rotSpeed = rand(-0.025, 0.025);
+    this.alpha = rand(0.6, 0.95);
+  }
+  draw() {
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.rot);
+    ctx.globalAlpha = this.alpha;
+    ctx.fillStyle = '#ffb8d4';
+    drawSakuraShape(ctx, this.size);
+    ctx.globalAlpha = 1;
+    ctx.restore();
+  }
+  update() {
+    this.y += this.speed;
+    this.x += this.wind + Math.sin(this.y / 120) * 0.2;
+    this.rot += this.rotSpeed;
+    if (this.y > h + 20) {
+      this.y = rand(-300, -50);
+      this.x = rand(0, w);
+    }
+    if (this.x < -50) this.x = w + 30;
+    if (this.x > w + 50) this.x = -30;
+  }
+}
+
+class Burst {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    this.size = rand(8, 22);
+    this.vx = rand(-5, 5);
+    this.vy = rand(-5, 5);
+    this.alpha = 1;
+    this.dec = 0.018;
+    this.color = `hsl(${rand(330, 360)}, 80%, 75%)`;
+    this.rot = rand(0, Math.PI * 2);
+    this.rotSpeed = rand(-0.04, 0.04);
+  }
+  draw() {
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.rot);
+    ctx.globalAlpha = this.alpha;
+    ctx.fillStyle = this.color;
+    drawSakuraShape(ctx, this.size);
+    ctx.globalAlpha = 1;
+    ctx.restore();
+  }
+  update() {
+    this.x += this.vx;
+    this.y += this.vy;
+    this.vy += 0.06;
+    this.rot += this.rotSpeed;
+    this.alpha -= this.dec;
+  }
+}
+
+class TrailSakura {
+  constructor(x, y) {
+    this.x = x + rand(-10, 10);
+    this.y = y + rand(-10, 10);
+    this.size = rand(10, 22);
+    this.alpha = 0.95 + rand(0, 0.05);
+    this.life = 1.0;
+    this.decay = rand(0.025, 0.05);
+    this.rot = rand(0, Math.PI * 2);
+    this.rotSpeed = rand(-0.02, 0.02);
+    const hue = rand(330, 360);
+    this.color = `hsl(${hue}, 85%, ${rand(70, 92)}%)`;
+  }
+  draw() {
+    const s = this.size * (0.6 + 0.4 * this.life);
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.rot);
+    ctx.globalAlpha = this.alpha * this.life;
+    ctx.fillStyle = this.color;
+    ctx.shadowColor = 'rgba(255,180,210,0.3)';
+    ctx.shadowBlur = 15;
+    drawSakuraShape(ctx, s);
+    ctx.shadowBlur = 0;
+    ctx.globalAlpha = 1;
+    ctx.restore();
+  }
+  update() {
+    this.life -= this.decay;
+    this.rot += this.rotSpeed;
+    this.x += Math.sin(Date.now() / 400 + this.y / 60) * 0.12;
+    this.y += Math.cos(Date.now() / 500 + this.x / 60) * 0.10;
+  }
+  isDead() {
+    return this.life <= 0;
+  }
+}
+
+function drawSakuraShape(context, size) {
+  context.beginPath();
+  context.moveTo(0, 0);
+  context.bezierCurveTo(-size * 0.6, -size * 0.3, -size * 0.5, size * 0.5, 0, size * 0.6);
+  context.bezierCurveTo(size * 0.5, size * 0.5, size * 0.6, -size * 0.3, 0, 0);
+  context.fill();
+}
+
+for (let i = 0; i < 55; i++) sakuras.push(new Sakura());
+
+function addTrailSakura(x, y) {
+  const count = Math.floor(rand(8, 13));
+  for (let i = 0; i < count; i++) {
+    const angle = rand(0, Math.PI * 2);
+    const dist = rand(5, 30);
+    const px = x + Math.cos(angle) * dist;
+    const py = y + Math.sin(angle) * dist;
+    trailParticles.push(new TrailSakura(px, py));
+  }
+  if (trailParticles.length > 600) {
+    trailParticles.splice(0, trailParticles.length - 500);
+  }
+}
+
+function onPointerMove(e) {
+  const x = e.clientX || (e.touches && e.touches[0].clientX);
+  const y = e.clientY || (e.touches && e.touches[0].clientY);
+  if (x == null) return;
+  addTrailSakura(x, y);
+}
+document.addEventListener('mousemove', onPointerMove);
+document.addEventListener('touchmove', onPointerMove);
+
+function triggerBurst(e) {
+  const x = e.clientX || (e.touches && e.touches[0].clientX);
+  const y = e.clientY || (e.touches && e.touches[0].clientY);
+  if (x == null) return;
+  for (let i = 0; i < 18; i++) bursts.push(new Burst(x, y));
+}
+document.addEventListener('click', triggerBurst);
+document.addEventListener('touchstart', triggerBurst);
+
+function animateSakura() {
+  if (!sakuraRunning) {
+    sakuraAnimId = requestAnimationFrame(animateSakura);
+    return;
+  }
+  ctx.clearRect(0, 0, w, h);
+
+  for (const s of sakuras) { s.update(); s.draw(); }
+  for (let i = trailParticles.length - 1; i >= 0; i--) {
+    const t = trailParticles[i];
+    t.update();
+    t.draw();
+    if (t.isDead()) trailParticles.splice(i, 1);
+  }
+  for (let i = bursts.length - 1; i >= 0; i--) {
+    bursts[i].update();
+    bursts[i].draw();
+    if (bursts[i].alpha <= 0) bursts.splice(i, 1);
+  }
+  sakuraAnimId = requestAnimationFrame(animateSakura);
+}
+animateSakura();
+
+window.addEventListener('resize', () => {
+  w = window.innerWidth;
+  h = window.innerHeight;
+  canvas.width = w;
+  canvas.height = h;
+});
+
+// ============================================================
+//  5. 整蛊彩蛋 — 终极暴闪版 + 震动 + 关闭主樱花
+// ============================================================
+const donateBtn = document.getElementById('donateBtn');
+const mainCard = document.getElementById('mainCard');
+const prankOverlay = document.getElementById('prankOverlay');
+const prankExit = document.getElementById('prankExit');
+const prankCanvas = document.getElementById('prankCanvas');
+const pCtx = prankCanvas.getContext('2d');
+let pW, pH;
+let prankActive = false;
+let prankParticles = [];
+let prankAnimId = null;
+
+function resizePrankCanvas() {
+  pW = window.innerWidth;
+  pH = window.innerHeight;
+  prankCanvas.width = pW;
+  prankCanvas.height = pH;
+}
+resizePrankCanvas();
+window.addEventListener('resize', resizePrankCanvas);
+
+class PrankParticle {
+  constructor() {
+    this.reset(true);
+  }
+  reset(forceInside = false) {
+    this.x = forceInside ? rand(0, pW) : rand(-pW * 0.2, pW * 1.2);
+    this.y = forceInside ? rand(0, pH) : rand(-pH * 0.2, pH * 1.2);
+    this.size = rand(18, 70);
+    this.hue = rand(0, 360);
+    this.speedX = rand(-16, 16);
+    this.speedY = rand(-16, 16);
+    this.alpha = rand(0.6, 1.0);
+    this.pulse = rand(0, Math.PI * 2);
+    this.pulseSpeed = rand(0.04, 0.15);
+    this.trail = [];
+    this.maxTrail = 10;
+  }
+  update() {
+    this.x += this.speedX;
+    this.y += this.speedY;
+    this.pulse += this.pulseSpeed;
+    this.hue += 3.5;
+    if (this.hue > 360) this.hue -= 360;
+
+    this.trail.push({ x: this.x, y: this.y, alpha: this.alpha * 0.4 });
+    if (this.trail.length > this.maxTrail) this.trail.shift();
+
+    if (Math.random() < 0.025) {
+      this.speedX += rand(-5, 5);
+      this.speedY += rand(-5, 5);
+      const maxSpeed = 20;
+      const sp = Math.sqrt(this.speedX * this.speedX + this.speedY * this.speedY);
+      if (sp > maxSpeed) {
+        this.speedX = (this.speedX / sp) * maxSpeed;
+        this.speedY = (this.speedY / sp) * maxSpeed;
+      }
+    }
+
+    if (this.x < -pW * 0.3 || this.x > pW * 1.3 || this.y < -pH * 0.3 || this.y > pH * 1.3) {
+      this.reset(false);
+    }
+  }
+  draw() {
+    for (let i = 0; i < this.trail.length; i++) {
+      const t = this.trail[i];
+      const alphaRatio = i / this.trail.length;
+      const r = this.size * (0.3 + 0.7 * alphaRatio) * (0.7 + 0.3 * Math.sin(this.pulse + i));
+      const grad = pCtx.createRadialGradient(t.x, t.y, 0, t.x, t.y, r);
+      const h = (this.hue + i * 15) % 360;
+      grad.addColorStop(0, `hsla(${h}, 100%, 80%, ${t.alpha * alphaRatio * 0.5})`);
+      grad.addColorStop(1, `hsla(${h + 40}, 100%, 60%, 0)`);
+      pCtx.fillStyle = grad;
+      pCtx.beginPath();
+      pCtx.arc(t.x, t.y, r, 0, Math.PI * 2);
+      pCtx.fill();
+    }
+
+    const r = this.size * (0.7 + 0.3 * Math.sin(this.pulse));
+    const grad = pCtx.createRadialGradient(this.x, this.y, 0, this.x, this.y, r);
+    const alpha = this.alpha * (0.7 + 0.3 * Math.sin(this.pulse * 0.7));
+    const hue1 = this.hue;
+    const hue2 = (this.hue + 50) % 360;
+    grad.addColorStop(0, `hsla(${hue1}, 100%, 85%, ${alpha})`);
+    grad.addColorStop(0.3, `hsla(${hue2}, 100%, 65%, ${alpha * 0.8})`);
+    grad.addColorStop(0.7, `hsla(${hue2 + 40}, 100%, 50%, ${alpha * 0.5})`);
+    grad.addColorStop(1, `hsla(${hue1 + 80}, 100%, 30%, 0)`);
+    pCtx.fillStyle = grad;
+    pCtx.beginPath();
+    pCtx.arc(this.x, this.y, r, 0, Math.PI * 2);
+    pCtx.fill();
+  }
+}
+
+function drawPrankRings(time) {
+  for (let ring = 0; ring < 10; ring++) {
+    const cx = pW / 2 + Math.sin(time * 0.5 + ring * 0.7) * pW * 0.25;
+    const cy = pH / 2 + Math.cos(time * 0.4 + ring * 0.9) * pH * 0.25;
+    const radius = 60 + ring * 30 + Math.sin(time * 0.8 + ring) * 30;
+    const hue = (time * 40 + ring * 50) % 360;
+    const grad = pCtx.createRadialGradient(cx, cy, 0, cx, cy, radius);
+    grad.addColorStop(0, `hsla(${hue}, 100%, 70%, 0.18)`);
+    grad.addColorStop(0.5, `hsla(${hue + 60}, 100%, 60%, 0.10)`);
+    grad.addColorStop(1, `hsla(${hue + 120}, 100%, 50%, 0)`);
+    pCtx.fillStyle = grad;
+    pCtx.beginPath();
+    pCtx.arc(cx, cy, radius, 0, Math.PI * 2);
+    pCtx.fill();
+  }
+}
+
+function initPrankParticles(count = 100) {
+  prankParticles = [];
+  for (let i = 0; i < count; i++) {
+    prankParticles.push(new PrankParticle());
+  }
+}
+
+function drawPrank() {
+  if (!prankActive) return;
+  pCtx.clearRect(0, 0, pW, pH);
+
+  const time = Date.now() / 1000;
+
+  drawPrankRings(time);
+
+  for (let i = 0; i < 40; i++) {
+    const angle = time * 0.6 + i * 0.35 + Math.sin(time * 0.25 + i) * 0.5;
+    const len = 100 + Math.sin(time * 1.5 + i * 0.7) * 60;
+    const x1 = pW / 2 + Math.cos(angle) * 20;
+    const y1 = pH / 2 + Math.sin(angle) * 20;
+    const x2 = pW / 2 + Math.cos(angle) * len;
+    const y2 = pH / 2 + Math.sin(angle) * len;
+    const hue = (time * 50 + i * 25) % 360;
+    pCtx.strokeStyle = `hsla(${hue}, 100%, 70%, 0.15)`;
+    pCtx.lineWidth = 2 + Math.sin(time * 0.6 + i) * 1.5;
+    pCtx.beginPath();
+    pCtx.moveTo(x1, y1);
+    pCtx.lineTo(x2, y2);
+    pCtx.stroke();
+  }
+
+  for (const p of prankParticles) {
+    p.update();
+    p.draw();
+  }
+
+  prankAnimId = requestAnimationFrame(drawPrank);
+}
+
+// ===== 最强震动 =====
+function triggerMaxVibration() {
+  if (!navigator.vibrate) return;
+  // 超强震动模式：长震 + 短震 + 长震 + 连续脉冲
+  navigator.vibrate([
+    200, 50,
+    100, 50,
+    200, 50,
+    80, 30,
+    80, 30,
+    80, 30,
+    300, 50,
+    150, 30,
+    150, 30,
+    400
+  ]);
+  // 如果有多个振动器，再加一层
+  if (navigator.vibrate.length !== undefined) {
+    setTimeout(() => {
+      navigator.vibrate([100, 40, 100, 40, 200]);
+    }, 800);
+  }
+}
+
+// ===== 触发整蛊 =====
+donateBtn.addEventListener('click', function() {
+  if (prankActive) return;
+  prankActive = true;
+  donateBtn.disabled = true;
+
+  // 触发最强震动
+  triggerMaxVibration();
+
+  // 关闭主樱花（停止更新，节省性能）
+  sakuraRunning = false;
+
+  if (isPlaying) {
+    audio1.pause();
+    isPlaying = false;
+    musicBtn.innerHTML = '🎵';
+    musicBtn.classList.remove('playing');
+  }
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  setTimeout(() => { mainCard.classList.add('prank-hide'); }, 300);
+  setTimeout(() => { document.body.classList.add('prank-mode'); }, 600);
+
+  setTimeout(() => {
+    prankOverlay.classList.add('active');
+    isPrankMode = true;
+
+    audio2.play().then(() => {
+      isPlaying = true;
+      musicBtn.innerHTML = '⏸';
+      musicBtn.classList.add('playing');
+    }).catch(() => {});
+
+    initPrankParticles(100);
+    if (prankAnimId) cancelAnimationFrame(prankAnimId);
+    drawPrank();
+  }, 900);
+});
+
+// ===== 退出整蛊 =====
+function exitPrank() {
+  if (!prankActive) return;
+  prankActive = false;
+  isPrankMode = false;
+  donateBtn.disabled = false;
+
+  // 恢复主樱花
+  sakuraRunning = true;
+
+  audio2.pause();
+  isPlaying = false;
+  musicBtn.innerHTML = '🎵';
+  musicBtn.classList.remove('playing');
+
+  prankOverlay.classList.remove('active');
+  document.body.classList.remove('prank-mode');
+  mainCard.classList.remove('prank-hide');
+
+  if (prankAnimId) {
+    cancelAnimationFrame(prankAnimId);
+    prankAnimId = null;
+  }
+  prankParticles = [];
+  pCtx.clearRect(0, 0, pW, pH);
+
+  if (!videoPlaying) resumeAudio1();
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+prankExit.addEventListener('click', exitPrank);
+prankExit.addEventListener('touchend', function(e) { e.preventDefault(); exitPrank(); });
+document.getElementById('prankText').addEventListener('click', exitPrank);
+document.getElementById('prankText').addEventListener('touchend', function(e) { e.preventDefault(); exitPrank(); });
+
+console.log('🌸 家逸的世界已加载！');
+console.log('💰 点击"捐款"触发终极暴闪整蛊 + 最强震动');
+console.log('🛡️ 网站运行天数从 2026-06-26 开始计算');
+console.log('📱 双击图片可放大查看');
+</script>
+</body>
+</html>
